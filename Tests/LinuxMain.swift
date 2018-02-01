@@ -1,6 +1,6 @@
 import XCTest
-@testable import SwiftHighResolutionTimerTests
+@testable import HighResolutionTimerTests
 
 XCTMain([
-    testCase(SwiftHighResolutionTimerTests.allTests),
+    testCase(HighResolutionTimerTests.allTests),
 ])
