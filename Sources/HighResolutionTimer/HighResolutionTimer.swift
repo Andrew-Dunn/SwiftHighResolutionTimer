@@ -20,16 +20,17 @@
     import Darwin
 #endif
 
-fileprivate let NANOSECONDS_IN_A_SECOND: Double = 1_000_000_000
+fileprivate let nanoSecondsPerSecond: Double = 1_000_000_000
+fileprivate let nanoSecondsPerSecondInt: Int = 1_000_000_000
 
 /// A basic timing class that will let you know how much time has passed between two points in time.
 public class HighResolutionTimer {
     #if os(Linux)
-    fileprivate typealias EpochType = timespec
+        fileprivate typealias EpochType = timespec
     #else
-    fileprivate typealias EpochType = UInt64
-    private var timeBaseInfo = mach_timebase_info_data_t()
-    private let ticksPerSecond: Double
+        fileprivate typealias EpochType = UInt64
+        private var timeBaseInfo = mach_timebase_info_data_t()
+        private let ticksPerSecond: Double
     #endif
     
     private var epoch: EpochType
@@ -38,10 +39,10 @@ public class HighResolutionTimer {
     public init() {
         #if os(Linux)
             epoch = timespec()
-            clock_gettime(CLOCK_MONOTONIC, &epoch)
+            clock_gettime(CLOCK_MONOTONIC_RAW, &epoch)
         #else
             mach_timebase_info(&timeBaseInfo)
-            ticksPerSecond = Double(timeBaseInfo.numer) / Double(timeBaseInfo.denom) / NANOSECONDS_IN_A_SECOND
+            ticksPerSecond = Double(timeBaseInfo.numer) / Double(timeBaseInfo.denom) / nanoSecondsPerSecond
             epoch = mach_absolute_time()
         #endif
     }
@@ -49,7 +50,7 @@ public class HighResolutionTimer {
     /// Set the start time.
     public func mark() {
         #if os(Linux)
-            clock_gettime(CLOCK_MONOTONIC, &epoch)
+            clock_gettime(CLOCK_MONOTONIC_RAW, &epoch)
         #else
             epoch = mach_absolute_time()
         #endif
@@ -61,9 +62,19 @@ public class HighResolutionTimer {
     public func check() -> Double {
         #if os(Linux)
             var now = timespec()
-            clock_gettime(CLOCK_MONOTONIC, &now)
+            clock_gettime(CLOCK_MONOTONIC_RAW, &now)
+        
+            var elapsed = timespec(tv_sec: 0, tv_nsec: 0)
+            if now.tv_nsec - epoch.tv_nsec < 0 {
+                elapsed.tv_sec = now.tv_sec - epoch.tv_sec - 1
+                elapsed.tv_nsec = now.tv_nsec - epoch.tv_nsec + nanoSecondsPerSecondInt
+            } else {
+                elapsed.tv_sec = now.tv_sec - epoch.tv_sec
+                elapsed.tv_nsec = now.tv_nsec - epoch.tv_nsec
+            }
+        
             let delta = Double(now.tv_sec - epoch.tv_sec)
-                + (Double(now.tv_nsec - epoch.tv_nsec) / NANOSECONDS_IN_A_SECOND)
+                + (Double(now.tv_nsec - epoch.tv_nsec) / nanoSecondsPerSecond)
         #else
             let delta = Double(mach_absolute_time() - epoch) * ticksPerSecond
         #endif

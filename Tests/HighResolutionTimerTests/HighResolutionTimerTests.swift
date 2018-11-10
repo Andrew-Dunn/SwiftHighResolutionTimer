@@ -17,7 +17,7 @@
 import XCTest
 import HighResolutionTimer
 
-class HighResolutionTimerTests: XCTestCase {
+public class HighResolutionTimerTests: XCTestCase {
     func testAccuracy() {
         let hrt = HighResolutionTimer()
         XCTAssertLessThan(hrt.check(), 0.001)
@@ -37,7 +37,7 @@ class HighResolutionTimerTests: XCTestCase {
         XCTAssertGreaterThan(elapsed, 10.000)
         XCTAssertLessThan(elapsed, 10.005)
     }
-    static var allTests = [
+    public static var allTests = [
         ("testAccuracy", testAccuracy),
     ]
 }

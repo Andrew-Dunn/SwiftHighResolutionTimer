@@ -1,5 +1,5 @@
 import XCTest
-@testable import HighResolutionTimerTests
+import HighResolutionTimerTests
 
 XCTMain([
     testCase(HighResolutionTimerTests.allTests),
